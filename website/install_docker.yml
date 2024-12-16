@@ -1,0 +1,44 @@
+---
+- name: Install Docker on Amazon Linux
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update the package index
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install Docker dependencies
+      yum:
+        name:
+          - amazon-linux-extras
+        state: present
+
+    - name: Enable Docker repository
+      command: amazon-linux-extras enable docker
+      notify:
+        - Install Docker
+
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version
+
+    - debug:
+        msg: "Docker installed successfully: {{ docker_version.stdout }}"
+
+  handlers:
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
